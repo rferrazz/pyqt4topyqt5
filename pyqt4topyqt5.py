@@ -111,6 +111,7 @@ class PyQt4ToPyQt5(object):
         self.fix_qinputdialog(src)
         self.fix_qchar(src)
         self.replace_classnames(src)
+        self.fix_qapplication(src)
         self.finish_process(src)
 
     def finish_process(self, src):
@@ -281,6 +282,22 @@ class PyQt4ToPyQt5(object):
                 if '.convertSeparators(' in line:
                     lines[idx]= line.replace('convertSeparators',
                                                 'toNativeSeparators')
+
+    def fix_qapplication(self, lines):
+        """
+        QApplication imported from PyQt5.QtWidgets
+        """
+
+        count = 0
+        while count < len(lines):
+            line = lines[count]
+
+            if self.is_code_line(line) and 'QApplication' in line:
+                for idx, l in enumerate(lines):
+                    if self.is_code_line(l) and 'import' in l:
+                        lines.insert(idx, 'from PyQt5.QtWidgets import QApplication\n')
+                        return
+            count += 1
 
     def fix_qtscript(self, lines):
         """Insert a FIXME for the class QtScript and QtScriptTools.
