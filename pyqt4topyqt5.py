@@ -1175,7 +1175,10 @@ class PyQt4ToPyQt5(object):
         string -- the line
         """
         line = self.convert_in_one_line(string)
-        head, tail = line.split('connect', 1)
+        try:
+            head, tail = line.split('connect', 1)
+        except ValueError as e:
+            return False
         elems = tail.split(',')
         sender = elems.pop(0).replace('(', '').strip()
         elems = self.remove_fromutf8(elems)
