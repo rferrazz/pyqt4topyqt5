@@ -138,10 +138,13 @@ class PyQt4ToPyQt5(object):
         Returns:
         (True, True, True) if there's PyQt4 or/and QtGui or/and QtWebkit imports
         """
-        qt4 = gui = web = False 
+        qt4 = gui = web = False
         for line in lines:
             if 'from PyQt4' in line:
                 qt4 = True
+                if '.Qt' in line:
+                    gui = True
+                    web = True
                 if 'QtGui' in line:
                     gui = True
                 if 'QtWebKit' in line:
