@@ -29,7 +29,7 @@ else:
 from qtclass import MODULES, CLASSES, DISCARDED
 
 L_SEP = os.linesep
-PYEXT = os.extsep + "py"
+PYEXT = (os.extsep + "py", os.extsep + "pxi")
 MOD_RE = {'QtGui': re.compile('(?<=QtGui.)(.*?)(?=[.\(\),])', re.DOTALL),
           'QtWebKit': re.compile('(?<=QtWebKit.)(.*?)(?=[.\(\),])', re.DOTALL)}
 SIG_RE = {'send_re': re.compile('(?<=.connect\()(.*?)(?=[, SIGNAL])', re.DOTALL),
@@ -1830,7 +1830,7 @@ class Main(object):
             self.process_from_dir(self.destdir)
 
         elif os.path.isfile(self.path):
-            if os.path.splitext(self.path)[1] != PYEXT:
+            if os.path.splitext(self.path)[1] not in PYEXT:
                 # Assume this is a list of files
                 files, subdirs = self.read_filenames(self.path)
                 if self.destdir == self.path:
@@ -1883,7 +1883,7 @@ class Main(object):
                     os.makedirs(os.path.join(target, name))
 
             for name in files:
-                if os.path.splitext(name)[1] == PYEXT:
+                if os.path.splitext(name)[1] in PYEXT:
                     src = os.path.join(root, name)
                     cp = os.path.join(target, name)
                     shutil.copy(src, cp)
