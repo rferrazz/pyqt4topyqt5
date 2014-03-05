@@ -259,7 +259,7 @@ class PyQt4ToPyQt5(object):
                         # returns a tuple, we insert an indice [0] into the
                         # final parenthesis
                         _, end = self.find_closing_parenthesis(line, new)
-                        lines[count] = ''.join([line[:end+1], '[0]', 
+                        lines[count] = ''.join([line[:end+1], '[0]',
                                                     line[end+1:], '\n'])
 
                         break
@@ -393,13 +393,13 @@ class PyQt4ToPyQt5(object):
                             count += 1
                             break
             count += 1
-        
+
     def fix_signals(self, lines):
-        """Fix the signal instanciation and connection in accordance to the 
+        """Fix the signal instanciation and connection in accordance to the
         signal-slot new-style.
 
         Args:
-        lines -- source code 
+        lines -- source code
         """
         fixme = "# FIXME$ Ambiguous syntax for this signal definition,"\
                                                 " can't refactor it.\n"
@@ -440,7 +440,7 @@ class PyQt4ToPyQt5(object):
             count += 1
 
     def fix_disconnect(self, lines):
-        """Refactor the pyqtSignal.disconnect() 
+        """Refactor the pyqtSignal.disconnect()
 
         Args:
         lines -- source code
@@ -452,7 +452,7 @@ class PyQt4ToPyQt5(object):
                 if '.disconnect(' in line and 'SIGNAL' in line:
                     indent = self.get_token_indent(line)
                     line = line.lstrip()
-                    if line.startswith(('QObject.disconnect(', 
+                    if line.startswith(('QObject.disconnect(',
                                         'QtCore.QObject.disconnect(')):
                         parts = line.split('(')
                         obj = parts[1].split(',')[0]
@@ -484,7 +484,7 @@ class PyQt4ToPyQt5(object):
                         signal = sig.split('(')[0].strip().strip('"').strip("'")
                         args = ', '.join(self.clean_args(end))
                         lines.pop(count)
-                        lines.insert(count, '%s.%s.emit(%s)\n' %(parts[0], 
+                        lines.insert(count, '%s.%s.emit(%s)\n' %(parts[0],
                                                              signal, args))
 
                     else:
@@ -569,11 +569,11 @@ class PyQt4ToPyQt5(object):
                                     break
 
                                 if string in line:
-                                    lines[count] = line.replace('.delta()', 
+                                    lines[count] = line.replace('.delta()',
                                                         '.angleDelta().y()')
                             count += 1
             count += 1
-        
+
     def fix_layoutmargin(self, lines):
         """Replace the QLayout method setMargin() by setContentsMargins()
 
@@ -610,7 +610,7 @@ class PyQt4ToPyQt5(object):
     def fix_qdesktopservices(self, lines):
         """Replace QDesktopServices by QStandardPaths.
 
-        This change is needed only for the methods displayName() and 
+        This change is needed only for the methods displayName() and
         storageLocation()
 
         Args:
@@ -656,7 +656,7 @@ class PyQt4ToPyQt5(object):
                 else:
                     method = method.replace('storage', 'writable')
                     cls = 'QStandardPaths'
-                    lines[count] = '%s = %s%s%s.%s)\n' %(sub[0].rstrip(), cls, 
+                    lines[count] = '%s = %s%s%s.%s)\n' %(sub[0].rstrip(), cls,
                                                             method, cls, loc)
                     self.modified['QStandardPaths'] = True
 
@@ -713,11 +713,11 @@ class PyQt4ToPyQt5(object):
             - Explicit: `scene=foo` or `scene` or `self.scene`
             - If args[-2] is None then args[-1] is scene
             - 1 arg: no scene possible
-            - 2 args: if no keyword `parent` the scene is not identified, 
+            - 2 args: if no keyword `parent` the scene is not identified,
                       a FIXME will be added
             - 3 args: args[2] is scene
             - 4 args: no scene possible
-            - 6 args: args[5] is scene 
+            - 6 args: args[5] is scene
 
         Args:
         lines -- the list of source code lines
@@ -848,7 +848,7 @@ class PyQt4ToPyQt5(object):
             lines[count] = line.replace(parts[1], '(%s)\n' % ', '.join(args))
             if scene != 'None':
                 count += 1
-                lines.insert(count, '%sif %s is not None: %s.addItem(self)\n' 
+                lines.insert(count, '%sif %s is not None: %s.addItem(self)\n'
                                 %(ind, scene, scene))
 
             return count + 1
@@ -869,7 +869,7 @@ class PyQt4ToPyQt5(object):
 
             elif args[idx].strip() in ['scene', 'self.scene']:
                 scene = args.pop(idx).strip()
-                break                
+                break
 
         return scene, args
 
@@ -889,10 +889,10 @@ class PyQt4ToPyQt5(object):
                     pass
 
         headers = tuple(headers)
-        olds = ('.setMovable', '.isMovable', 
+        olds = ('.setMovable', '.isMovable',
                 '.setClickable', '.isClickable',
                 '.setResizeMode', '.resizeMode')
-        news = ('.setSectionsMovable', '.sectionsMovable', 
+        news = ('.setSectionsMovable', '.sectionsMovable',
                 '.setSectionsClickable', '.sectionsClickable',
                 '.setSectionResizeMode', '.sectionResizeMode')
         for old, new in zip(olds, news):
@@ -1147,7 +1147,7 @@ class PyQt4ToPyQt5(object):
                     return first, bg[1]
 
         return 0, len(line)
-        
+
 
     def refactor_signal_instances(self, string):
         """Refactor the multiple pyqtSignal instance.
@@ -1163,7 +1163,7 @@ class PyQt4ToPyQt5(object):
         lines = []
         for m in match:
             sig, arg = m.split('(')
-            lines.append("%s = pyqtSignal(%s" %(sig, arg.replace("QString", 
+            lines.append("%s = pyqtSignal(%s" %(sig, arg.replace("QString",
                                                                 "'QString'")))
 
         return lines
@@ -1269,7 +1269,7 @@ class PyQt4ToPyQt5(object):
         count = 0
         def set_qstandardpaths(txt):
             if self.modified['QStandardPaths']:
-                news.append(txt.replace('PyQt4', 'PyQt5') + 
+                news.append(txt.replace('PyQt4', 'PyQt5') +
                             '.QtCore import QStandardPaths\n')
                 self.modified['QStandardPaths'] = False
 
@@ -1308,19 +1308,19 @@ class PyQt4ToPyQt5(object):
                     news.append(txt)
 
                 if wdg:
-                    stwdg = "".join([parts[0].replace('PyQt4.QtGui', 
+                    stwdg = "".join([parts[0].replace('PyQt4.QtGui',
                                     'PyQt5.QtWidgets import '), ', '.join(wdg)])
                     txt = self.reindent_import_line(stwdg)
                     news.append(txt)
 
                 if pr:
-                    stpr = "".join([parts[0].replace('PyQt4.QtGui', 
+                    stpr = "".join([parts[0].replace('PyQt4.QtGui',
                                 'PyQt5.QtPrintSupport import '), ', '.join(pr)])
                     txt = self.reindent_import_line(stpr)
                     news.append(txt)
 
                 if md:
-                    stmd = "".join([parts[0].replace('PyQt4.QtGui', 
+                    stmd = "".join([parts[0].replace('PyQt4.QtGui',
                                 'PyQt5.QtMultimedia import '), ', '.join(md)])
                     txt = self.reindent_import_line(stmd)
                     news.append(txt)
@@ -1336,7 +1336,7 @@ class PyQt4ToPyQt5(object):
                     news.append(txt)
 
                 if wdg:
-                    chain = "".join([parts[0].replace('PyQt4.QtWebKit', 
+                    chain = "".join([parts[0].replace('PyQt4.QtWebKit',
                                     'PyQt5.QtWebKitWidgets'),
                                     'import ', ', '.join(wdg)])
                     txt = self.reindent_import_line(chain)
@@ -1775,7 +1775,7 @@ class Main(object):
                         "a source code python or a text file wich contains the "
                         "names of the files to be converted separated by a new "
                         "line.")
-        parser.add_argument("--nosubdir", action="store_true", 
+        parser.add_argument("--nosubdir", action="store_true",
                         help="Don't process into sub-directories."
                         "  Default: False")
         parser.add_argument("-o", nargs=1, help="The name of the generated "
@@ -1807,7 +1807,7 @@ class Main(object):
 
         if arg.diffs:
             self.write_diffs = True
-  
+
         if arg.o:
             self.destdir = self.check_path(arg.o[0], True)
             if not self.destdir:
@@ -1894,7 +1894,7 @@ class Main(object):
             with open(path, 'r') as inf:
                 files = [f.strip() for f in inf.readlines()]
         except IOError as why:
-            sys.stdout.write("Can't read the file: `%s`\nReason: %s\n" 
+            sys.stdout.write("Can't read the file: `%s`\nReason: %s\n"
                                 %(path, why))
             sys.exit()
 
@@ -1915,7 +1915,7 @@ class Main(object):
             try:
                 os.makedirs(dest)
             except Exception as why:
-                sys.stdout.write("Can't create the dir: `%s`\nReason: %s\n" 
+                sys.stdout.write("Can't create the dir: `%s`\nReason: %s\n"
                                     %(dest, why))
                 sys.exit()
 
@@ -2014,7 +2014,7 @@ class Main(object):
         cmd = " ".join(['diff', orig, dest])
         with open(diffname, 'a') as outf:
             outf.write('\n** Diff file created by pyqt4topyqt5.py %s **\n' % date)
-            outf.write('<\t%s\n>\t%s\n' % (orig, dest))         
+            outf.write('<\t%s\n>\t%s\n' % (orig, dest))
             reply = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
             outf.write(str(reply.communicate()[0]))
 
@@ -2024,5 +2024,5 @@ class Main(object):
 
 if __name__ == '__main__':
     main = Main(sys.argv)
-        
-        
+
+
