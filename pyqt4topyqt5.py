@@ -1580,8 +1580,8 @@ class Tools(object):
 
         else:
             try:
-                with open(filename, "rb", encoding=self.encoding) as inf:
-                    content = unicode(inf.read())
+                with open(filename, "r", encoding=self.encoding) as inf:
+                    content = inf.read()
             except IOError as why:
                 self.last_error = why
                 return False
