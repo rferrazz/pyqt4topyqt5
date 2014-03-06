@@ -1308,6 +1308,41 @@ class PyQt4ToPyQt5(object):
                 news.append(txt)
                 set_qstandardpaths(line.split(' import')[0])
 
+            elif 'from PyQt4.Qt import ' in line:
+                parts = line.split('import ')
+                gui, wdg, pr, md, ogl = self.sort_qt_classes(parts[1])
+
+                if gui:
+                    stgui = "".join([parts[0].replace('PyQt4', 'PyQt5'),
+                                    'import ', ', '.join(gui)])
+                    txt = self.reindent_import_line(stgui)
+                    news.append(txt)
+
+                if wdg:
+                    stwdg = "".join([parts[0].replace('PyQt4.Qt',
+                                    'PyQt5.QtWidgets import '), ', '.join(wdg)])
+                    txt = self.reindent_import_line(stwdg)
+                    news.append(txt)
+
+                if pr:
+                    stpr = "".join([parts[0].replace('PyQt4.Qt',
+                                'PyQt5.QtPrintSupport import '), ', '.join(pr)])
+                    txt = self.reindent_import_line(stpr)
+                    news.append(txt)
+
+                if md:
+                    stmd = "".join([parts[0].replace('PyQt4.Qt',
+                                'PyQt5.QtMultimedia import '), ', '.join(md)])
+                    txt = self.reindent_import_line(stmd)
+                    news.append(txt)
+
+                if ogl:
+                    stogl = "".join([parts[0].replace('PyQt4.Qt',
+                                'PyQt5.QtOpenGL import '), ', '.join(ogl)])
+                    txt = self.reindent_import_line(stogl)
+                    news.append(txt)
+                set_qstandardpaths(line.split('.Qt')[0])
+
             elif 'from PyQt4.QtGui ' in line:
                 parts = line.split('import')
                 gui, wdg, pr, md = self.sort_qtgui_classes(parts[1])
@@ -1430,6 +1465,26 @@ class PyQt4ToPyQt5(object):
                 olds.append(cls)
 
         return olds, widgets, printer, medias
+
+    def sort_qt_classes(self, chain):
+        """
+        Sort the classes from a qt import line
+
+        Args:
+        chain -- the classe's names in one line
+
+        Returns:
+        Five lists: Qt, QtWidgets, QtPrintSupport, QtMultimedia and QtOpenGl classes
+        """
+        olds, widgets, printer, medias = self.sort_qtgui_classes(chain)
+        opengl = []
+        gui = []
+        for cls in olds:
+            if cls in CLASSES['QtOpenGL']:
+                opengl.append(cls)
+            else:
+                gui.append(cls)
+        return gui, widgets, printer, medias, opengl
 
     def sort_qtwebkit_classes(self, chain):
         """Sort the classes from a QtWebkit import line.
