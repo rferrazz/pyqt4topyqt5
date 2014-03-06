@@ -296,10 +296,20 @@ class PyQt4ToPyQt5(object):
             line = lines[count]
 
             if self.is_code_line(line) and 'QApplication' in line:
-                for idx, l in enumerate(lines):
+                backCount = count
+                while backCount > 1:
+                    l = lines[backCount]
+
                     if self.is_code_line(l) and 'import' in l:
-                        lines.insert(idx, 'from PyQt5.QtWidgets import QApplication\n')
+                        indent = self.get_token_indent(l)
+                        lines.insert(backCount, indent + 'from PyQt5.QtWidgets import QApplication\n')
                         return
+
+                    backCount -= 1
+
+                # We are at the top of the file
+                lines.insert(backCount, "from PyQt5.QtWidgets import QApplication\n")
+
             count += 1
 
     def fix_qtscript(self, lines):
