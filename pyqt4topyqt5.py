@@ -55,6 +55,8 @@ class PyQt4ToPyQt5(object):
         self.indent = ' '
         self.tools = Tools()
 
+        self._has_qtwidget_import = False
+
     def setup(self):
         self.print_('Processing file: `%s`' % self.source)
         self.modified = {'QtGui': False, 'QtWidgets': False,
@@ -93,7 +95,7 @@ class PyQt4ToPyQt5(object):
 
         self.fix_qfiledialog(src)
         self.fix_qdir(src)
-        self.fix_qapplication(src)
+        self.fix_qwidget(src)
         self.fix_qtscript(src)
         self.fix_qtxml(src)
         self.fix_qtdeclarative(src)
@@ -286,29 +288,43 @@ class PyQt4ToPyQt5(object):
                     lines[idx]= line.replace('convertSeparators',
                                                 'toNativeSeparators')
 
-    def fix_qapplication(self, lines):
+    def fix_qwidget(self, lines):
         """
-        QApplication imported from PyQt5.QtWidgets
+        Checks if some QWidget classes are used without importing the QWidget module
+
+        This function is SLOW
         """
+
+        def import_qwidgets(currentIdx):
+            backCount = currentIdx
+            self._has_qtwidget_import = True
+
+            while backCount > 1:
+                l = lines[backCount]
+
+                if self.is_code_line(l) and 'import' in l:
+                    indent = self.get_token_indent(l)
+                    lines.insert(backCount, indent + 'from PyQt5.QtWidgets import *\n')
+                    return
+
+                backCount -= 1
+
+            # We are at the top of the file
+            lines.insert(backCount, "from PyQt5.QtWidgets import *\n")
+
+
+        if self._has_qtwidget_import:
+            return
 
         count = 0
         while count < len(lines):
             line = lines[count]
 
-            if self.is_code_line(line) and 'QApplication' in line:
-                backCount = count
-                while backCount > 1:
-                    l = lines[backCount]
-
-                    if self.is_code_line(l) and 'import' in l:
-                        indent = self.get_token_indent(l)
-                        lines.insert(backCount, indent + 'from PyQt5.QtWidgets import QApplication\n')
+            if self.is_code_line(line):
+                for w in CLASSES['QtWidgets']:
+                    if w in line:
+                        import_qwidgets(count)
                         return
-
-                    backCount -= 1
-
-                # We are at the top of the file
-                lines.insert(backCount, "from PyQt5.QtWidgets import QApplication\n")
 
             count += 1
 
@@ -1322,6 +1338,7 @@ class PyQt4ToPyQt5(object):
                     stwdg = "".join([parts[0].replace('PyQt4.Qt',
                                     'PyQt5.QtWidgets import '), ', '.join(wdg)])
                     txt = self.reindent_import_line(stwdg)
+                    self._has_qtwidget_import = True
                     news.append(txt)
 
                 if pr:
@@ -1356,6 +1373,7 @@ class PyQt4ToPyQt5(object):
                     stwdg = "".join([parts[0].replace('PyQt4.QtGui',
                                     'PyQt5.QtWidgets import '), ', '.join(wdg)])
                     txt = self.reindent_import_line(stwdg)
+                    self._has_qtwidget_import = True
                     news.append(txt)
 
                 if pr:
@@ -1413,6 +1431,7 @@ class PyQt4ToPyQt5(object):
 
         if self.modified['QtWidgets']:
             modules.append('QtWidgets')
+            self._has_qtwidget_import = True
 
         if 'QtWebKit' in modules and not self.modified['QtWebKit']:
             modules.remove('QtWebKit')
