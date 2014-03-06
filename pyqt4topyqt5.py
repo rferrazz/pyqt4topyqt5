@@ -93,6 +93,7 @@ class PyQt4ToPyQt5(object):
 
         self.fix_qfiledialog(src)
         self.fix_qdir(src)
+        self.fix_qapplication(src)
         self.fix_qtscript(src)
         self.fix_qtxml(src)
         self.fix_qtdeclarative(src)
@@ -111,7 +112,6 @@ class PyQt4ToPyQt5(object):
         self.fix_qinputdialog(src)
         self.fix_qchar(src)
         self.replace_classnames(src)
-        self.fix_qapplication(src)
         self.finish_process(src)
 
     def finish_process(self, src):
