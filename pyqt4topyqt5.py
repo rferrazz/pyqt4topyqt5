@@ -509,9 +509,13 @@ class PyQt4ToPyQt5(object):
                         end = parts[1].split(sig)[1]
                         signal = sig.split('(')[0].strip().strip('"').strip("'")
                         args = ', '.join(self.clean_args(end))
+                        fin_re = re.compile('(?<=\))(.*)', re.DOTALL)
+                        fin = fin_re.search(end[end.find(")")+1:]).groups()[0]
                         lines.pop(count)
-                        lines.insert(count, '%s.%s.emit(%s)\n' %(parts[0],
-                                                             signal, args))
+                        lines.insert(
+                            count, '%s.%s.emit(%s)%s\n' %
+                            (parts[0], signal, args, fin)
+                        )
 
                     else:
                         lines.insert(count, '%s%s' %(indent, fixme))
