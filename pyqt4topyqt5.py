@@ -112,6 +112,7 @@ class PyQt4ToPyQt5(object):
         self.fix_emit(src)
         self.fix_connect(src)
         self.fix_disconnect(src)
+        self.fix_slot(src)
         self.fix_translations(src)
         self.fix_wheelevent(src)
         self.fix_layoutmargin(src)
@@ -531,6 +532,13 @@ class PyQt4ToPyQt5(object):
                         obj = line.split('(')[0]
                         lines[count] = '%s%s()\n' %(indent, obj)
             count += 1
+
+    def fix_slot(self, lines):
+        """
+        pyqtSignature decorator changed into pyqtSlot
+        """
+        for idx, line in enumerate(lines):
+            lines[idx] = line.replace('@pyqtSignature', '@pyqtSlot')
 
     def fix_emit(self, lines):
         """Refactor the pyqtSignal.emit() old-style into a new-style line.
