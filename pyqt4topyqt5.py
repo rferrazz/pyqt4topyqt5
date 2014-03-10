@@ -32,7 +32,8 @@ L_SEP = os.linesep
 PYEXT = (os.extsep + "py", os.extsep + "pxi")
 MOD_RE = {'QtGui': re.compile('(?<=QtGui.)(.*?)(?=[.\(\),])', re.DOTALL),
           'QtWebKit': re.compile('(?<=QtWebKit.)(.*?)(?=[.\(\),])', re.DOTALL)}
-SIG_RE = {'send_re': re.compile('(?<=.connect\()(.*?)(?=[, SIGNAL])', re.DOTALL),
+SIG_RE = {'fun_re': re.compile('(?<=\()(.*)(?=\))', re.DOTALL),
+          'send_re': re.compile('(?<=.connect\()(.*?)(?=[, SIGNAL])', re.DOTALL),
           'sig_re': re.compile('(?<=SIGNAL\(["\' ])(.*?)(?=["\',])', re.DOTALL),
           'call_re': re.compile('(?<=["\']\),)(.*?)(?=[,\)])', re.DOTALL),
           'slot_re': re.compile('(?<=SLOT\(["\'])(.*?)(?=["\'])', re.DOTALL),
@@ -45,6 +46,13 @@ LAYOUT_RE = re.compile('(.*?)(\=)(.*?)(?=Layout\()')
 DSK_RE = re.compile('(.*?)(\=)(.*?)(?=QDesktopServices\()')
 DATE_RE = re.compile('(.*?)(\=)(.*?)(?=QDate\()')
 CLS_RE = re.compile('(?<=class )(.*?)(?=[\(:])')
+
+# Utils
+
+def diff_parenthesis(line):
+    opened = line.count('(')
+    closed = line.count(')')
+    return opened - closed
 
 
 class PyQt4ToPyQt5(object):
@@ -101,9 +109,9 @@ class PyQt4ToPyQt5(object):
         self.fix_qtdeclarative(src)
         self.fix_qgraphicsitemanimation(src)
         self.fix_qtopengl(src)
-        self.fix_signals(src)
-        self.fix_disconnect(src)
         self.fix_emit(src)
+        self.fix_connect(src)
+        self.fix_disconnect(src)
         self.fix_translations(src)
         self.fix_wheelevent(src)
         self.fix_layoutmargin(src)
@@ -295,22 +303,19 @@ class PyQt4ToPyQt5(object):
         This function is SLOW
         """
 
-        def import_qwidgets(currentIdx):
-            backCount = currentIdx
+        def import_qwidgets():
+            i = 0
             self._has_qtwidget_import = True
 
-            while backCount > 1:
-                l = lines[backCount]
+            while i < len(lines):
+                l = lines[i]
 
-                if self.is_code_line(l) and 'import' in l:
+                if self.is_code_line(l) and 'import' in l and not '__future__' in l:
                     indent = self.get_token_indent(l)
-                    lines.insert(backCount, indent + 'from PyQt5.QtWidgets import *\n')
+                    lines.insert(i, indent + 'from PyQt5.QtWidgets import *\n')
                     return
 
-                backCount -= 1
-
-            # We are at the top of the file
-            lines.insert(backCount, "from PyQt5.QtWidgets import *\n")
+                i += 1
 
 
         if self._has_qtwidget_import:
@@ -323,7 +328,7 @@ class PyQt4ToPyQt5(object):
             if self.is_code_line(line):
                 for w in CLASSES['QtWidgets']:
                     if w in line:
-                        import_qwidgets(count)
+                        import_qwidgets()
                         return
 
             count += 1
@@ -420,50 +425,88 @@ class PyQt4ToPyQt5(object):
                             break
             count += 1
 
-    def fix_signals(self, lines):
-        """Fix the signal instanciation and connection in accordance to the
-        signal-slot new-style.
-
-        Args:
-        lines -- source code
-        """
-        fixme = "# FIXME$ Ambiguous syntax for this signal definition,"\
-                                                " can't refactor it.\n"
-        fixme1 = "# FIXME$ Ambiguous syntax for this signal connection,"\
-                                                " can't refactor it.\n"
-        count = 0
-        while count < len(lines):
-            line = lines[count]
-            if not self.is_code_line(line):
-                count += 1
+    def split_function(self, function):
+        slices = ['']
+        current = 0
+        i = 0
+        while i < len(function):
+            if function[i] == ',':
+                slices.append('')
+                current += 1
+                i += 1
                 continue
 
-            if '__pyqtSignals__' in line:
+            slices[current] += function[i]
+
+            if function[i] == '(':
+                inside = 1
+                while inside != 0:
+                    i += 1
+
+                    if function[i] == '(':
+                        inside += 1
+                    elif function[i] == ')':
+                        inside -= 1
+
+                    slices[current] += function[i]
+            i += 1
+
+        result = []
+        i = 0
+        while i < len(slices):
+            if 'lambda ' in slices[i]:
+                lambda_f = ''
+
+                while i < len(slices):
+                    if lambda_f == '':
+                        lambda_f += slices[i]
+                    else:
+                        lambda_f += ',' + slices[i]
+
+                    if ':' in slices[i]:
+                        break
+
+                    i += 1
+
+                result.append(lambda_f)
+            else:
+                result.append(slices[i])
+
+            i += 1
+
+        if len(result) == 1 and result[0].strip() == '':
+            return []
+
+        return [s.strip() for s in result]
+
+    def remove_signal_slot(self, el):
+        if "SIGNAL" in el or "SLOT" in el:
+            content = SIG_RE['fun_re'].search(el).groups()[0]
+            content = content.strip('\'').strip('"')
+
+            slices = content.split('(')
+            if len(slices) == 1:
+                return slices
+
+            return [slices[0]] + self.split_function(slices[1].replace(')', '').replace('const ', '').replace('&', '').replace('*', ''))
+        return [el]
+
+    def fix_connect(self, lines):
+        for idx, line in enumerate(lines):
+            if not self.is_code_line(line) or not 'connect(' in line:
+                continue
+
+            function = SIG_RE['fun_re'].search(line)
+            if function is not None:
+                arguments = self.split_function(function.groups()[0])
+                if len(arguments) < 2:
+                    return
+                signal = self.remove_signal_slot(arguments[1])
                 indent = self.get_token_indent(line)
-                strings = self.refactor_signal_instances(line)
-                if not strings:
-                    lines.insert(count, '%s%s' %(indent, fixme))
-                    count += 1
-
-                else:
-                    lines.pop(count)
-                    for s in strings:
-                        lines.insert(count, '%s%s\n' %(indent, s))
-                        count += 1
-
-            elif 'SIGNAL(' in line and not 'disconnect' in line \
-                                    and not '.emit(' in line:
-                indent = self.get_token_indent(line)
-                chain = self.refactor_connection(line)
-                if not chain:
-                    lines.insert(count, '%s%s' %(indent, fixme1))
-                    count += 1
-
-                else:
-                    lines.pop(count)
-                    lines.insert(count, '%s%s' %(indent, chain))
-
-            count += 1
+                if len(signal) == 1:
+                    lines[idx] = indent + '%s.%s.connect(%s)\n' % (arguments[0], signal[0], ", ".join([self.remove_signal_slot(e)[0] for e in arguments[2:]]))
+                    continue
+                lines[idx] = indent + '%s.%s[%s].connect(%s)\n' % (arguments[0], signal[0], ", ".join(signal[1:]), ','.join([self.remove_signal_slot(e)[0] for e in arguments[2:]]))
 
     def fix_disconnect(self, lines):
         """Refactor the pyqtSignal.disconnect()
@@ -499,27 +542,19 @@ class PyQt4ToPyQt5(object):
         count = 0
         while count < len(lines):
             line = lines[count]
-            if self.is_code_line(line):
-                if '.emit(' in line and 'SIGNAL(' in line:
-                    indent = self.get_token_indent(line)
-                    parts = line.split('.emit(')
-                    match = SIG_RE['emit_re'].search(parts[1])
-                    if match is not None:
-                        sig = match.group(0)
-                        end = parts[1].split(sig)[1]
-                        signal = sig.split('(')[0].strip().strip('"').strip("'")
-                        args = ', '.join(self.clean_args(end))
-                        fin_re = re.compile('(?<=\))(.*)', re.DOTALL)
-                        fin = fin_re.search(end[end.find(")")+1:]).groups()[0]
-                        lines.pop(count)
-                        lines.insert(
-                            count, '%s.%s.emit(%s)%s\n' %
-                            (parts[0], signal, args, fin)
-                        )
+            if self.is_code_line(line) and '.emit(' in line and 'SIGNAL(' in line:
+                parts = line.split('.emit')
+                function = SIG_RE['fun_re'].search(parts[1])
+                if function is not None:
+                    args = self.split_function(function.groups()[0])
+                    diff = diff_parenthesis(args[-1])
+                    parenthesis = ''.join([')' for i in range(abs(diff))])
+                    if diff < 0:
+                        li = args[-1].rsplit(')', abs(diff))
+                        args[-1] = ''.join(li)
 
-                    else:
-                        lines.insert(count, '%s%s' %(indent, fixme))
-                        count += 1
+
+                    lines[count] = '%s.%s.emit(%s)%s\n' % (parts[0], self.remove_signal_slot(args[0])[0], ', '.join(args[1:]), parenthesis)
             count += 1
 
     def fix_translations(self, lines):
@@ -1178,7 +1213,6 @@ class PyQt4ToPyQt5(object):
 
         return 0, len(line)
 
-
     def refactor_signal_instances(self, string):
         """Refactor the multiple pyqtSignal instance.
 
@@ -1197,36 +1231,6 @@ class PyQt4ToPyQt5(object):
                                                                 "'QString'")))
 
         return lines
-
-    def refactor_connection(self, string):
-        """Refactor the QObject.connect() old-style into a new-style line.
-
-        Args:
-        string -- the line
-        """
-        line = self.convert_in_one_line(string)
-        try:
-            head, tail = line.split('connect', 1)
-        except ValueError as e:
-            return False
-        elems = tail.split(',')
-        sender = elems.pop(0).replace('(', '').strip()
-        elems = self.remove_fromutf8(elems)
-        ret = self.get_signal(elems)
-        if ret is None:
-            return False
-
-        sig, elems = ret
-        signal = self.refactor_signal(sig)
-        slot = self.get_slot(elems)
-        if not signal or not elems:
-            return False
-
-        called = self.rcut(elems[0], ')').strip()
-        if slot:
-            called = '%s.%s' %(called, slot)
-
-        return '%s.%s.connect(%s)\n' %(sender, signal, called)
 
     def remove_fromutf8(self, strings):
         for idx, string in enumerate(strings):
@@ -1284,6 +1288,7 @@ class PyQt4ToPyQt5(object):
     def clean_signal(self, signal):
         signal = signal.replace('()', '').replace(' *', '').replace('*', '')
         signal = signal.replace('(', '[').replace(')', ']')
+        signal = signal.replace("const ", '').replace('&', '')
         return signal.replace('QString', "'QString'")
 
     def change_import_lines(self, lines):
@@ -1305,10 +1310,12 @@ class PyQt4ToPyQt5(object):
 
         while count < len(lines):
             line = lines[count]
-            if not self.is_code_line(line):
-                news.append(line)
 
-            elif 'from PyQt4.QtCore ' in line and self.modified['QStandardPaths']:
+            if 'import ' in line:
+                line = line.replace(', SIGNAL', '')
+                line = line.replace('SIGNAL', '')
+
+            if 'from PyQt4.QtCore ' in line and self.modified['QStandardPaths']:
                 news.append(line.replace('PyQt4', 'PyQt5').rstrip() +
                             ', QStandardPaths\n')
                 self.modified['QStandardPaths'] = False
@@ -1623,7 +1630,15 @@ class PyQt4ToPyQt5(object):
 
         else:
             with open(self.dest, 'w') as outf:
+                #remove = False
                 for line in lines:
+                    ## Somwhere in this script a blank line
+                    ## is added every blank line: here we remove a blank line
+                    ## every blank line
+                    #if line == '\n':
+                        #remove = not remove
+                        #if remove:
+                            #continue
                     l = line.replace('\n', str(L_SEP))
                     outf.write(line)
 
