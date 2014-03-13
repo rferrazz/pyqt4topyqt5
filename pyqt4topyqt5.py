@@ -504,6 +504,7 @@ class PyQt4ToPyQt5(object):
                 if len(arguments) < 2:
                     return
                 signal = self.remove_signal_slot(arguments[1])
+                signal = [s.replace('QString', '\'QString\'') for s in signal]
                 indent = self.get_token_indent(line)
                 if len(signal) == 1:
                     lines[idx] = indent + '%s.%s.connect(%s)\n' % (arguments[0], signal[0], ", ".join([self.remove_signal_slot(e)[0] for e in arguments[2:]]))
