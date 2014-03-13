@@ -314,11 +314,10 @@ class PyQt4ToPyQt5(object):
 
                 if self.is_code_line(l) and 'import' in l and not '__future__' in l:
                     indent = self.get_token_indent(l)
-                    lines.insert(i, indent + 'from PyQt5.QtWidgets import *\n')
+                    lines.insert(i+1, indent + 'from PyQt5.QtWidgets import *\n')
                     return
 
                 i += 1
-
 
         if self._has_qtwidget_import:
             return
