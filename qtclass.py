@@ -462,6 +462,7 @@ CLASSES = {
 		'QAction',
 		'QActionGroup',
 		'QApplication',
+		'qApp',
 		'QApplication.instance()',
 		'QBoxLayout',
 		'QButtonGroup',
