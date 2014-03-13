@@ -101,6 +101,8 @@ class PyQt4ToPyQt5(object):
         if web:
             src = self.change_module_name(src, 'QtWebKit', 'QtWebKitWidgets')
 
+        src = self.change_import_lines(src)
+
         self.fix_qfiledialog(src)
         self.fix_qdir(src)
         self.fix_qwidget(src)
@@ -126,7 +128,6 @@ class PyQt4ToPyQt5(object):
         self.finish_process(src)
 
     def finish_process(self, src):
-        src = self.change_import_lines(src)
         src, fixs = self.clean_file(src)
 
         self.save_changes(src)
