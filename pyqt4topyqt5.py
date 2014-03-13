@@ -543,11 +543,32 @@ class PyQt4ToPyQt5(object):
             lines[idx] = line.replace('@pyqtSignature', '@pyqtSlot')
 
     def fix_emit(self, lines):
-        """Refactor the pyqtSignal.emit() old-style into a new-style line.
+        """
+        Refactor the pyqtSignal.emit() old-style into a new-style line.
+        Attempts also to create unexisting signals
 
         Args:
         lines -- the list of source code lines
         """
+
+        def create_signal(currentIdx, name, argnumbers):
+            l = lines[currentIdx]
+            while not 'class ' in l:
+                currentIdx -= 1
+                l = lines[currentIdx]
+            currentIdx += 1
+            l = lines[currentIdx]
+            while True:
+                if self.is_code_line(l) and name in l:
+                    return
+                if self.is_code_line(l) and not 'pyqtSignal' in l:
+                    break
+                currentIdx += 1
+                l = lines[currentIdx]
+
+            indent = self.get_token_indent(l)
+            lines.insert(currentIdx, "%s = pyqtSignal(%s)\n" % (indent + name, ','.join(['QVariant' for i in range(argnumbers)])))
+
         fixme = "# FIXME$ Ambiguous syntax for this signal, can't refactor it.\n"
         count = 0
         while count < len(lines):
@@ -563,8 +584,8 @@ class PyQt4ToPyQt5(object):
                         li = args[-1].rsplit(')', abs(diff))
                         args[-1] = ''.join(li)
 
-
                     lines[count] = '%s.%s.emit(%s)%s\n' % (parts[0], self.remove_signal_slot(args[0])[0], ', '.join(args[1:]), parenthesis)
+                    create_signal(count, self.remove_signal_slot(args[0])[0], len(args)-1)
             count += 1
 
     def fix_translations(self, lines):
