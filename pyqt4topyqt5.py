@@ -32,22 +32,22 @@ from qtclass import MODULES, CLASSES, DISCARDED
 
 L_SEP = os.linesep
 PYEXT = (os.extsep + "py", os.extsep + "pxi")
-MOD_RE = {'QtGui': re.compile('(?<=QtGui.)(.*?)(?=[.\(\),])', re.DOTALL),
-          'QtWebKit': re.compile('(?<=QtWebKit.)(.*?)(?=[.\(\),])', re.DOTALL)}
-SIG_RE = {'fun_re': re.compile('(?<=\()(.*)(?=\))', re.DOTALL),
-          'send_re': re.compile('(?<=.connect\()(.*?)(?=[, SIGNAL])', re.DOTALL),
-          'sig_re': re.compile('(?<=SIGNAL\(["\' ])(.*?)(?=["\',])', re.DOTALL),
-          'call_re': re.compile('(?<=["\']\),)(.*?)(?=[,\)])', re.DOTALL),
-          'slot_re': re.compile('(?<=SLOT\(["\'])(.*?)(?=["\'])', re.DOTALL),
-          'lamb_re': re.compile('(?<=lambda )(.*?)(?=[\)])', re.DOTALL),
-          'pysig_re': re.compile('(?<=["\'])(.*?)(?=["\'])', re.DOTALL),
-          'emit_re': re.compile('(?<=SIGNAL\()(.*?)(?=[\)])', re.DOTALL)}
-DOT_RE = re.compile('(?<=\()(.*?)(?=.NoDotAndDotDot)')
-WHEEL_RE = re.compile('(?<=def wheelEvent\(self,)(.*?)(?=\):)')
-LAYOUT_RE = re.compile('(.*?)(\=)(.*?)(?=Layout\()')
-DSK_RE = re.compile('(.*?)(\=)(.*?)(?=QDesktopServices\()')
-DATE_RE = re.compile('(.*?)(\=)(.*?)(?=QDate\()')
-CLS_RE = re.compile('(?<=class )(.*?)(?=[\(:])')
+MOD_RE = {'QtGui': re.compile(r'(?<=QtGui.)(.*?)(?=[.\(\),])', re.DOTALL),
+          'QtWebKit': re.compile(r'(?<=QtWebKit.)(.*?)(?=[.\(\),])', re.DOTALL)}
+SIG_RE = {'fun_re': re.compile(r'(?<=\()(.*)(?=\))', re.DOTALL),
+          'send_re': re.compile(r'(?<=.connect\()(.*?)(?=[, SIGNAL])', re.DOTALL),
+          'sig_re': re.compile(r'''(?<=SIGNAL\(["' ])(.*?)(?=["',])''', re.DOTALL),
+          'call_re': re.compile(r'''(?<=["']\),)(.*?)(?=[,\)])''', re.DOTALL),
+          'slot_re': re.compile(r'''(?<=SLOT\(["'])(.*?)(?=["'])''', re.DOTALL),
+          'lamb_re': re.compile(r'(?<=lambda )(.*?)(?=[\)])', re.DOTALL),
+          'pysig_re': re.compile(r'''(?<=["'])(.*?)(?=["'])''', re.DOTALL),
+          'emit_re': re.compile(r'(?<=SIGNAL\()(.*?)(?=[\)])', re.DOTALL)}
+DOT_RE = re.compile(r'(?<=\()(.*?)(?=.NoDotAndDotDot)')
+WHEEL_RE = re.compile(r'(?<=def wheelEvent\(self,)(.*?)(?=\):)')
+LAYOUT_RE = re.compile(r'(.*?)(\=)(.*?)(?=Layout\()')
+DSK_RE = re.compile(r'(.*?)(\=)(.*?)(?=QDesktopServices\()')
+DATE_RE = re.compile(r'(.*?)(\=)(.*?)(?=QDate\()')
+CLS_RE = re.compile(r'(?<=class )(.*?)(?=[\(:])')
 
 # Utils
 
