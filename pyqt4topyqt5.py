@@ -1,3 +1,5 @@
+#! /usr/bin/python
+
 # -*- coding: utf-8 -*-
 
 # pyqt4topyqt5.py
