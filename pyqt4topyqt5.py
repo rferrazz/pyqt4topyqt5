@@ -2145,12 +2145,9 @@ class Main(object):
         if orig is None:
             orig = self.copied[dest]
 
-        date = datetime.now().strftime("%A %d. %B %Y %H:%M")
-        cmd = " ".join(['diff', orig, dest])
+        cmd = ['diff', '-u', orig, dest]
         with open(diffname, 'a') as outf:
-            outf.write('\n** Diff file created by pyqt4topyqt5.py %s **\n' % date)
-            outf.write('<\t%s\n>\t%s\n' % (orig, dest))
-            reply = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+            reply = subprocess.Popen(cmd, stdout=subprocess.PIPE)
             outf.write(str(reply.communicate()[0]))
 
     def print_(self, msg):
