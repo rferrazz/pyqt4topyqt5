@@ -35,13 +35,9 @@ PYEXT = (os.extsep + "py", os.extsep + "pxi")
 MOD_RE = {'QtGui': re.compile(r'(?<=QtGui\.)(.*?)(?=[.\(\),])', re.DOTALL),
           'QtWebKit': re.compile(r'(?<=QtWebKit\.)(.*?)(?=[.\(\),])', re.DOTALL)}
 SIG_RE = {'fun_re': re.compile(r'(?<=\()(.*)(?=\))', re.DOTALL),
-          'send_re': re.compile(r'(?<=\.connect\()(.*?)(?=[, SIGNAL])', re.DOTALL),
           'sig_re': re.compile(r'''(?<=SIGNAL\(["' ])(.*?)(?=["',])''', re.DOTALL),
-          'call_re': re.compile(r'''(?<=["']\),)(.*?)(?=[,\)])''', re.DOTALL),
           'slot_re': re.compile(r'''(?<=SLOT\(["'])(.*?)(?=["'])''', re.DOTALL),
-          'lamb_re': re.compile(r'(?<=lambda )(.*?)(?=[\)])', re.DOTALL),
-          'pysig_re': re.compile(r'''(?<=["'])(.*?)(?=["'])''', re.DOTALL),
-          'emit_re': re.compile(r'(?<=SIGNAL\()(.*?)(?=[\)])', re.DOTALL)}
+          'pysig_re': re.compile(r'''(?<=["'])(.*?)(?=["'])''', re.DOTALL)}
 DOT_RE = re.compile(r'(?<=\()(.*?)(?=\.NoDotAndDotDot)')
 WHEEL_RE = re.compile(r'(?<=def wheelEvent\(self,)(.*?)(?=\):)')
 LAYOUT_RE = re.compile(r'(.*?)(\=)(.*?)(?=Layout\()')
