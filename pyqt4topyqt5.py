@@ -2239,7 +2239,7 @@ class Tools(object):
                 self.last_error = why
                 return None
 
-        return content.split('\n')
+        return content.split(L_SEP)
 
     def get_encoding(self, path):
         lines = []
