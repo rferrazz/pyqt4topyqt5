@@ -76,7 +76,7 @@ class PyQt4ToPyQt5(object):
                          'QStandardPaths': False}
         src = self.tools.get_code_lines(self.source)
         if src is None:
-            self.print_('  Error: Unable to read the file: %s\n  Reason: %s\n'
+            self.print_('  Error: Unable to read the file: %s\r\n  Reason: %s\r\n'
                         % (self.source, self.tools.last_error))
             return
 
@@ -89,7 +89,7 @@ class PyQt4ToPyQt5(object):
         # src is the list of logical lines code, NOT physical lines
         qt4, sig, gui, web = self.get_import_lines(src)
         if not any([qt4, sig, gui, web]):
-            self.print_('  No changes needed.\n')
+            self.print_('  No changes needed.\r\n')
             return
 
         # call before updating signals and slots
@@ -147,12 +147,12 @@ class PyQt4ToPyQt5(object):
         self.save_changes(src)
         if fixs:
             if len(fixs) == 1:
-                txt = "  FIXME added:\n%s" % fixs[0][:-1]
+                txt = "  FIXME added:\r\n%s" % fixs[0][:-1]
             else:
-                txt = "  FIXMEs added:\n" + ''.join(fixs)[:-1]
+                txt = "  FIXMEs added:\r\n" + ''.join(fixs)[:-1]
             self.print_(txt)
 
-        self.print_('  File updated.\n')
+        self.print_('  File updated.\r\n')
 
     def get_import_lines(self, lines):
         """Check if changes are needed.
@@ -189,7 +189,7 @@ class PyQt4ToPyQt5(object):
         old_mod -- the old name of the module
         new_mod -- the name of the module where the class has been moved
         """
-        fixme = "# FIXME$ Ambiguous syntax, can't refactor it\n"
+        fixme = "# FIXME$ Ambiguous syntax, can't refactor it\r\n"
         classes = CLASSES[new_mod]
         news = []
         count = 0
@@ -286,7 +286,7 @@ class PyQt4ToPyQt5(object):
                         # returns a tuple, we insert an indice [0] into the
                         # final parenthesis
                         _, end = self.find_closing_parenthesis(line, new)
-                        lines[count] = ''.join([line[:end+1], '[0]', line[end+1:], '\n'])
+                        lines[count] = ''.join([line[:end+1], '[0]', line[end+1:], '\r\n'])
 
                         break
 
@@ -327,7 +327,7 @@ class PyQt4ToPyQt5(object):
 
                 if self.is_code_line(l) and l.lstrip().startswith(('import ', 'from ')) and not '__future__' in l:
                     indent = self.get_token_indent(l)
-                    lines.insert(i+1, indent + 'from PyQt5.QtWidgets import *\n')
+                    lines.insert(i+1, indent + 'from PyQt5.QtWidgets import *\r\n')
                     return
 
                 i += 1
@@ -353,7 +353,7 @@ class PyQt4ToPyQt5(object):
         Args:
         lines -- source code
         """
-        fixme = '# FIXME$ QtScript and QtScriptTools are no longer supported.\n'
+        fixme = '# FIXME$ QtScript and QtScriptTools are no longer supported.\r\n'
         count = 0
         while count < len(lines):
             line = lines[count]
@@ -370,7 +370,7 @@ class PyQt4ToPyQt5(object):
         Args:
         lines -- source code
         """
-        fixme = '# FIXME$ QtXml is no longer supported.\n'
+        fixme = '# FIXME$ QtXml is no longer supported.\r\n'
         count = 0
         while count < len(lines):
             line = lines[count]
@@ -387,7 +387,7 @@ class PyQt4ToPyQt5(object):
         Args:
         lines -- source code
         """
-        fixme = '# FIXME$ QtDeclarative module is no longer supported.\n'
+        fixme = '# FIXME$ QtDeclarative module is no longer supported.\r\n'
         names = ['QtDeclarative', 'QDeclarative', 'QPyDeclarative']
         count = 0
         while count < len(lines):
@@ -407,7 +407,7 @@ class PyQt4ToPyQt5(object):
         Args:
         lines -- source code
         """
-        fixme = '# FIXME$ QGraphicsItemAnimation class is no longer supported.\n'
+        fixme = '# FIXME$ QGraphicsItemAnimation class is no longer supported.\r\n'
         count = 0
         while count < len(lines):
             line = lines[count]
@@ -424,7 +424,7 @@ class PyQt4ToPyQt5(object):
         Args:
         lines -- source code
         """
-        fixme = '# FIXME$ Only QGLContext, QGLFormat and QGLWidget are supported.\n'
+        fixme = '# FIXME$ Only QGLContext, QGLFormat and QGLWidget are supported.\r\n'
         classes = DISCARDED['QtOpenGl']
         count = 0
         while count < len(lines):
@@ -560,19 +560,19 @@ class PyQt4ToPyQt5(object):
             line = lines[currentIdx]
 
         indent = self.get_token_indent(line)
-        if lines[currentIdx-1] == "\n":
+        if lines[currentIdx-1] == "\r\n":
             currentIdx -= 1
         if len(signal) == 1 or signal[0] == 'sslErrors':
-            lines.insert(currentIdx, "%s = %spyqtSignal()\n" % (indent + name, module))
+            lines.insert(currentIdx, "%s = %spyqtSignal()\r\n" % (indent + name, module))
         else:
             type_str = ', '.join(signal[1:]).replace('::', '.')
-            lines.insert(currentIdx, "%s = %spyqtSignal(%s)\n" % (indent + name, module, type_str))
+            lines.insert(currentIdx, "%s = %spyqtSignal(%s)\r\n" % (indent + name, module, type_str))
         self._added_pyqtSignal = True
 
         currentIdx += 1
         line = lines[currentIdx]
         if line.lstrip().startswith('def '):
-            lines.insert(currentIdx, "\n")
+            lines.insert(currentIdx, "\r\n")
             return 2
         else:
             return 1
@@ -665,7 +665,7 @@ class PyQt4ToPyQt5(object):
                 lines[count] += '[%s]' % slot_args
             if other_args:
                 lines[count] += ', %s' % other_args
-            lines[count] += ')\n'
+            lines[count] += ')\r\n'
 
             if slot_signal:
                 count += self.create_signal(lines, count, slot_signal)
@@ -751,7 +751,7 @@ class PyQt4ToPyQt5(object):
             lines[idx] += '%s' % slot_fun
             if slot_signal and slot_args:
                 lines[idx] += '[%s]' % slot_args
-            lines[idx] += ')\n'
+            lines[idx] += ')\r\n'
 
     def fix_signal(self, lines):
         """
@@ -798,7 +798,7 @@ class PyQt4ToPyQt5(object):
                         args[-1] = ''.join(li)
                     if len(args) == 2 and args[1] == '()':
                         args.pop()
-                    lines[count] = '%s.%s.emit(%s)%s\n' % (parts[0], self.remove_signal_slot(args[0])[0], \
+                    lines[count] = '%s.%s.emit(%s)%s\r\n' % (parts[0], self.remove_signal_slot(args[0])[0], \
                                                            ', '.join(args[1:]), parenthesis)
                     count += self.create_signal(lines, count, args[0])
             count += 1
@@ -845,7 +845,7 @@ class PyQt4ToPyQt5(object):
                             part = part.rstrip(',').rstrip().rstrip(',')
                             ln = ln + part
 
-                    lines[count] = ln + '\n'
+                    lines[count] = ln + '\r\n'
 
                 elif '.trUtf8(' in line:
                     lines[count] = line.replace('trUtf8(', 'tr(')
@@ -910,7 +910,7 @@ class PyQt4ToPyQt5(object):
                     if parts[0].lstrip() in layouts:
                         val = parts[1].strip().rstrip(')').strip()
                         vals = ', '.join([val] * 4)
-                        lines[idx] = '%s%s%s)\n' % (parts[0], news[0], vals)
+                        lines[idx] = '%s%s%s)\r\n' % (parts[0], news[0], vals)
 
                 elif '.margin(' in line:
                     ref = m_re.split(line.split('.margin')[0])[-1]
@@ -926,7 +926,7 @@ class PyQt4ToPyQt5(object):
         Args:
         lines -- the list of source code lines
         """
-        fixme = "# FIXME$ Ambiguous syntax for QDesktopServices, can't refactor it.\n"
+        fixme = "# FIXME$ Ambiguous syntax for QDesktopServices, can't refactor it.\r\n"
         dsks = ['QDesktopServices()', 'QtGui.QDesktopServices()']
         for line in lines:
             if 'QDesktopServices' in line:
@@ -969,7 +969,7 @@ class PyQt4ToPyQt5(object):
                 else:
                     method = method.replace('storage', 'writable')
                     cls = 'QStandardPaths'
-                    lines[count] = '%s = %s%s%s.%s)\n' % (sub[0].rstrip(), cls, method, cls, loc)
+                    lines[count] = '%s = %s%s%s.%s)\r\n' % (sub[0].rstrip(), cls, method, cls, loc)
                     self.modified['QStandardPaths'] = True
 
             count += 1
@@ -1119,7 +1119,7 @@ class PyQt4ToPyQt5(object):
 
                             else:
                                 # (object, parent) or (parent, scene)
-                                code.insert(count, '%s%s\n' % (ind, fixme))
+                                code.insert(count, '%s%s\r\n' % (ind, fixme))
                                 count += 2
                                 continue
 
@@ -1138,13 +1138,13 @@ class PyQt4ToPyQt5(object):
                         scene = args.pop()
 
                     else:
-                        code.insert(count, '%s%s\n' % (ind, fixme))
+                        code.insert(count, '%s%s\r\n' % (ind, fixme))
                         count += 2
                         continue
 
-                code[count] = line.replace(parts[1], '(%s)\n' % ', '.join(args))
+                code[count] = line.replace(parts[1], '(%s)\r\n' % ', '.join(args))
                 if scene and scene != 'None':
-                    string = '%s%s.addItem(%s)\n' % (ind, scene, ref.strip())
+                    string = '%s%s.addItem(%s)\r\n' % (ind, scene, ref.strip())
                     count += 1
                     code.insert(count, string)
 
@@ -1218,7 +1218,7 @@ class PyQt4ToPyQt5(object):
 
                         else:
                             # (self, object, parent) or (self, parent, scene)
-                            lines.insert(count, '%s%s\n' % (ind, fixme))
+                            lines.insert(count, '%s%s\r\n' % (ind, fixme))
                             return count + 2
 
                 # 3: (self, object, parent, scene)
@@ -1235,13 +1235,13 @@ class PyQt4ToPyQt5(object):
                     scene = args.pop()
 
                 else:
-                    lines.insert(count, '%s%s\n' % (ind, fixme))
+                    lines.insert(count, '%s%s\r\n' % (ind, fixme))
                     return count + 2
 
-            lines[count] = line.replace(parts[1], '(%s)\n' % ', '.join(args))
+            lines[count] = line.replace(parts[1], '(%s)\r\n' % ', '.join(args))
             if scene != 'None':
                 count += 1
-                lines.insert(count, '%sif %s is not None: %s.addItem(self)\n' % (ind, scene, scene))
+                lines.insert(count, '%sif %s is not None: %s.addItem(self)\r\n' % (ind, scene, scene))
 
             return count + 1
 
@@ -1345,13 +1345,13 @@ class PyQt4ToPyQt5(object):
                 if not self.is_code_line(lines[idx]) or lines[idx].lstrip().startswith(('import ', 'from ', '__')):
                     continue
 
-                lines.insert(idx, "\n")
+                lines.insert(idx, "\r\n")
 
                 ind = self.find_next_indent(lines[idx+1:])
                 if not ind:
                     ind = "    "
-                text = "try:\n%sQChar = unichr\nexcept NameError:\n"\
-                       "%s# Python 3\n%sQChar = chr\n" % (ind, ind, ind)
+                text = "try:\r\n%sQChar = unichr\r\nexcept NameError:\r\n"\
+                       "%s# Python 3\r\n%sQChar = chr\r\n" % (ind, ind, ind)
                 lines.insert(idx, text)
 
                 break
@@ -1391,18 +1391,18 @@ class PyQt4ToPyQt5(object):
                 if not self.is_code_line(lines[idx]) or lines[idx].lstrip().startswith(('import ', 'from ', '__')):
                     continue
 
-                lines.insert(idx, "\n")
+                lines.insert(idx, "\r\n")
 
                 if is_qstring_list:
-                    text = "QStringList = list\n"
+                    text = "QStringList = list\r\n"
                     lines.insert(idx, text)
 
                 if is_qstring:
                     ind = self.find_next_indent(lines[idx+1:])
                     if not ind:
                         ind = "    "
-                    text = "try:\n%sQString = unicode\nexcept NameError:\n"\
-                           "%s# Python 3\n%sQString = str\n" % (ind, ind, ind)
+                    text = "try:\r\n%sQString = unicode\r\nexcept NameError:\r\n"\
+                           "%s# Python 3\r\n%sQString = str\r\n" % (ind, ind, ind)
                     lines.insert(idx, text)
 
                 break
@@ -1710,7 +1710,7 @@ class PyQt4ToPyQt5(object):
                         continue
                 else:
                     indent = self.get_token_indent(line)
-                    lines[count] = indent + '_fromUtf8 = lambda s: s\n'
+                    lines[count] = indent + '_fromUtf8 = lambda s: s\r\n'
                     continue
 
             line = line.replace("PyQt4.QtCore.QString.fromUtf8(", "_fromUtf8(")\
@@ -1796,29 +1796,29 @@ class PyQt4ToPyQt5(object):
         if new_mod:
             line = line.replace(','+old_mod+',', ','+new_mod+',')\
                        .replace(', '+old_mod+',', ', '+new_mod+',')\
-                       .replace(','+old_mod+'\n', ','+new_mod+'\n')\
-                       .replace(', '+old_mod+'\n', ', '+new_mod+'\n')\
+                       .replace(','+old_mod+'\r\n', ','+new_mod+'\r\n')\
+                       .replace(', '+old_mod+'\r\n', ', '+new_mod+'\r\n')\
                        .replace(','+old_mod+'\\', ','+new_mod+'\\')\
                        .replace(','+old_mod+' \\', ','+new_mod+' \\')\
                        .replace(', '+old_mod+'\\', ', '+new_mod+'\\')\
                        .replace(', '+old_mod+' \\', ', '+new_mod+' \\')\
                        .replace(' '+old_mod+', ', ' '+new_mod+', ')\
                        .replace(' '+old_mod+',', ' '+new_mod+',')\
-                       .replace(' '+old_mod+'\n', ' '+new_mod+'\n')\
+                       .replace(' '+old_mod+'\r\n', ' '+new_mod+'\r\n')\
                        .replace(' '+old_mod+'\\', ' '+new_mod+'\\')\
                        .replace(' '+old_mod+' \\', ' '+new_mod+' \\')
         else:
             line = line.replace(','+old_mod+',', ',')\
                        .replace(', '+old_mod+',', ',')\
-                       .replace(','+old_mod+'\n', '\n')\
-                       .replace(', '+old_mod+'\n', '\n')\
+                       .replace(','+old_mod+'\r\n', '\r\n')\
+                       .replace(', '+old_mod+'\r\n', '\r\n')\
                        .replace(','+old_mod+'\\', '\\')\
                        .replace(','+old_mod+' \\', ' \\')\
                        .replace(', '+old_mod+'\\', '\\')\
                        .replace(', '+old_mod+' \\', ' \\')\
                        .replace(' '+old_mod+', ', ' ')\
                        .replace(' '+old_mod+',', ' ')\
-                       .replace(' '+old_mod+'\n', '\n')\
+                       .replace(' '+old_mod+'\r\n', '\r\n')\
                        .replace(' '+old_mod+'\\', '\\')\
                        .replace(' '+old_mod+' \\', ' \\')
         return line
@@ -1836,7 +1836,7 @@ class PyQt4ToPyQt5(object):
         count = 0
         def set_qstandardpaths(txt):
             if self.modified['QStandardPaths']:
-                news.append(txt.replace('PyQt4', 'PyQt5') + '.QtCore import QStandardPaths\n')
+                news.append(txt.replace('PyQt4', 'PyQt5') + '.QtCore import QStandardPaths\r\n')
                 self.modified['QStandardPaths'] = False
 
         while count < len(lines):
@@ -1849,7 +1849,7 @@ class PyQt4ToPyQt5(object):
 
             ls_line = line.lstrip()
             if line.lstrip().startswith(('import ', 'from ')):
-                line = line.rstrip() + '\n'
+                line = line.rstrip() + '\r\n'
                 if self._added_pyqtSignal:
                     line = self.replace_module(line, 'SIGNAL', 'pyqtSignal')
                 else:
@@ -1871,14 +1871,14 @@ class PyQt4ToPyQt5(object):
                 continue
 
             if ls_line.startswith('from PyQt4.QtCore ') and self.modified['QStandardPaths']:
-                news.append(line.replace('PyQt4', 'PyQt5').rstrip() + ', QStandardPaths\n')
+                news.append(line.replace('PyQt4', 'PyQt5').rstrip() + ', QStandardPaths\r\n')
                 self.modified['QStandardPaths'] = False
 
             elif ls_line.startswith('from PyQt4.QtCore ') and 'QChar' in line:
                 elems = [c.strip() for c in line[25:].split(',')]
                 elems.remove('QChar')
                 if elems:
-                    news.append('from PyQt5.QtCore import ' + ', '.join(elems) + '\n')
+                    news.append('from PyQt5.QtCore import ' + ', '.join(elems) + '\r\n')
 
             elif ls_line.startswith('from PyQt4 import '):
                 line = self.refactor_modules_import(line)
@@ -2118,7 +2118,7 @@ class PyQt4ToPyQt5(object):
         Multiline
         """
         if len(line) < 81:
-            return line + '\n'
+            return line + '\r\n'
 
         begin, end = line.split('import ')
         txt = begin + 'import ('
@@ -2131,13 +2131,13 @@ class PyQt4ToPyQt5(object):
                 txt += cl
 
             else:
-                txt += '\n'
+                txt += '\r\n'
                 lines.append(txt)
                 txt = indent + cl
 
         lines.append(txt[:-1] + ')')
 
-        return "".join(lines) + '\n'
+        return "".join(lines) + '\r\n'
 
     def get_import_indent(self, length):
         """Returns the indentation for a multiline import.
@@ -2162,7 +2162,7 @@ class PyQt4ToPyQt5(object):
                 if 'FIXME$' in line:
                     lines[i] = line.replace('FIXME$', 'FIXME')
                     fixs.append('%6d %s' %(lineno, line.lstrip().lstrip('# FIXME$')))
-            lineno += line.count('\n')
+            lineno += line.count('\r\n')
 
         return lines, fixs
 
@@ -2179,7 +2179,7 @@ class PyQt4ToPyQt5(object):
         return string
 
     def convert_in_one_line(self, strings):
-        lines = strings.split('\n')
+        lines = strings.split('\r\n')
         if len(lines) > 1:
             return lines[0] + ''.join(l.lstrip() for l in lines[1:])
 
@@ -2187,13 +2187,13 @@ class PyQt4ToPyQt5(object):
 
     def save_changes(self, lines):
         with open(self.dest, 'wb') as outf:
-            outf.write(''.join(lines).replace('\n', L_SEP).encode(self.tools.encoding))
+            outf.write(''.join(lines).replace('\r\n', L_SEP).encode(self.tools.encoding))
 
         mode = os.stat(self.source).st_mode
         os.chmod(self.dest, mode)
 
     def print_(self, msg):
-        sys.stdout.write('%s\n' % msg)
+        sys.stdout.write('%s\r\n' % msg)
         if self.log:
             with open(self.log, 'a') as outf:
                 if PY_VERS < 3:
@@ -2239,7 +2239,7 @@ class Tools(object):
                 self.last_error = why
                 return None
 
-        return content.split('\n')
+        return content.split('\r\n')
 
     def get_encoding(self, path):
         lines = []
@@ -2251,7 +2251,7 @@ class Tools(object):
                 except:
                     pass
         except IOError as why:
-            sys.stdout.write("Can't read the file `%s`\nReason: %s\n" % (path, why))
+            sys.stdout.write("Can't read the file `%s`\r\nReason: %s\r\n" % (path, why))
             return None
 
         return self.read_encoding(lines)
@@ -2302,18 +2302,18 @@ class Tools(object):
             encoding = "iso-8859-1"
 
         else:
-            sys.stdout.write("Non-standard encoding: %s\n" % enc)
+            sys.stdout.write("Non-standard encoding: %s\r\n" % enc)
             encoding = enc
 
         try:
             codec = lookup(encoding)
         except LookupError:
-            sys.stdout.write("Can't read the encoding: %s\n" % encoding)
+            sys.stdout.write("Can't read the encoding: %s\r\n" % encoding)
             return None
 
         if bom:
             if codec.name != 'utf-8':
-                sys.stdout.write("Inconsistant encoding: %s\n" % encoding)
+                sys.stdout.write("Inconsistant encoding: %s\r\n" % encoding)
                 return None
             encoding += '-sig'
 
@@ -2334,7 +2334,7 @@ class Tools(object):
             #return None
             return []
 
-        orig = ['%s\n' % l for l in source]
+        orig = ['%s\r\n' % l for l in source]
         lines = []
         gen = self.get_num_physical_lines(filename)
         while 1:
@@ -2408,7 +2408,7 @@ class Tools(object):
                     new = False
 
         except Exception as why:
-            sys.stdout.write('Except: %s\nLine: %s\n%s' %(why, end, ln))
+            sys.stdout.write('Except: %s\r\nLine: %s\r\n%s' %(why, end, ln))
             self.last_error = why
             yield False
 
@@ -2430,7 +2430,7 @@ class Main(object):
         parser = argparse.ArgumentParser(description='Convert a source code '
                         'written for PyQt4 into a valid code for PyQt5')
         parser.add_argument("path",
-                        help="Path of a file or a directory.\nThe file may be "
+                        help="Path of a file or a directory.\r\nThe file may be "
                         "a source code python or a text file wich contains the "
                         "names of the files to be converted separated by a new "
                         "line.")
@@ -2494,7 +2494,7 @@ class Main(object):
         else:
             self.log = 'pyqt4_to_pyqt4.log' if self.nopyqt5 else 'pyqt4_to_pyqt5.log'
             date = datetime.now().strftime("%A %d. %B %Y %H:%M")
-            self.print_('**  %s  %s  **\nArgs: %s\n' % (self.log, date, sys.argv))
+            self.print_('**  %s  %s  **\r\nArgs: %s\r\n' % (self.log, date, sys.argv))
 
         self.prepare_changes(self.followlinks)
 
@@ -2561,21 +2561,23 @@ class Main(object):
                 self.write_diff_file(self.destdir, self.path)
 
     def process_from_dir(self, fld, followlinks=False):
-        self.print_('Beginning into: %s\n' % fld)
+        self.print_('Beginning into: %s\r\n' % fld)
         for root, _, files in os.walk(fld, followlinks=followlinks):
             files.sort()
             for f in files:
                 fname = os.path.join(root, f)
-                cnv = PyQt4ToPyQt5(fname, fname, self.log, self.nopyqt5)
-                cnv.setup()
-                self.write_diff_file(fname)
+                # Checking that it is a python file only
+                if self.is_python_file(fname):
+                    cnv = PyQt4ToPyQt5(fname, fname, self.log, self.nopyqt5)
+                    cnv.setup()
+                    self.write_diff_file(fname)
 
     def copy_dir(self, dest, orig, followlinks=False):
         self.copied = {}
         try:
             os.makedirs(dest)
         except Exception as why:
-            sys.stdout.write("Can't create the dir: `%s`\nReason: %s\n" % (dest, why))
+            sys.stdout.write("Can't create the dir: `%s`\r\nReason: %s\r\n" % (dest, why))
             sys.exit()
 
         if self.nosubdir:
@@ -2594,17 +2596,16 @@ class Main(object):
 
             for name in files:
                 src = os.path.join(root, name)
-                if self.is_python_file(src):
-                    cp = os.path.join(target, name)
-                    shutil.copy(src, cp)
-                    self.copied[cp] = src
+                cp = os.path.join(target, name)
+                shutil.copy(src, cp)
+                self.copied[cp] = src
 
     def read_filenames(self, path):
         try:
             with open(path, 'r') as inf:
                 files = [f.strip() for f in inf.readlines()]
         except IOError as why:
-            sys.stdout.write("Can't read the file: `%s`\nReason: %s\n" % (path, why))
+            sys.stdout.write("Can't read the file: `%s`\r\nReason: %s\r\n" % (path, why))
             sys.exit()
 
         files.sort()
@@ -2624,12 +2625,12 @@ class Main(object):
             try:
                 os.makedirs(dest)
             except Exception as why:
-                sys.stdout.write("Can't create the dir: `%s`\nReason: %s\n" % (dest, why))
+                sys.stdout.write("Can't create the dir: `%s`\r\nReason: %s\r\n" % (dest, why))
                 sys.exit()
 
         for f in files:
             if not os.path.isfile(f):
-                sys.stdout.write('File `%s` not found, ignored\n' % f)
+                sys.stdout.write('File `%s` not found, ignored\r\n' % f)
                 continue
             cp = os.path.join(dest, os.path.basename(f))
             shutil.copy(f, cp)
@@ -2641,14 +2642,14 @@ class Main(object):
 
         if not writable:
             if not os.path.exists(path):
-                sys.stdout.write('No such file or directory: `%s`\n' % path)
+                sys.stdout.write('No such file or directory: `%s`\r\n' % path)
                 return False
 
             return path
 
         parent = os.path.dirname(path)
         if not os.access(parent, os.W_OK):
-            sys.stdout.write('Destination dir `%s` is read only\n' % parent)
+            sys.stdout.write('Destination dir `%s` is read only\r\n' % parent)
             return False
 
         return path
@@ -2668,7 +2669,7 @@ class Main(object):
 
             elif os.path.isdir(self.write_diff):
                 if not self.check_path(self.write_diff, True):
-                    sys.stdout.write('Dir `%s` is read only\n' % self.write_diff)
+                    sys.stdout.write('Dir `%s` is read only\r\n' % self.write_diff)
                     self.write_diff = False
                     return
 
@@ -2693,7 +2694,7 @@ class Main(object):
             else:
                 if os.path.isdir(self.write_diff):
                     if not self.check_path(self.write_diff, True):
-                        sys.stdout.write('Dir `%s` is read only\n' % self.write_diff)
+                        sys.stdout.write('Dir `%s` is read only\r\n' % self.write_diff)
                         self.write_diff = False
                         return
 
@@ -2726,7 +2727,7 @@ class Main(object):
     def print_(self, msg):
         if self.log:
             with open(self.log, 'a') as outf:
-                outf.write('%s\n' % msg)
+                outf.write('%s\r\n' % msg)
 
 if __name__ == '__main__':
     main = Main(sys.argv)
