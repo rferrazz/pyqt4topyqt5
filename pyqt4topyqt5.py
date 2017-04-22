@@ -1992,7 +1992,8 @@ class PyQt4ToPyQt5(object):
         parts = line.split('import ')
         chain = parts[0].replace('PyQt4', 'PyQt5') + 'import '
         end = parts[1].replace('(', '').replace(')', '').replace('\\', '')
-        modules = set([name.strip() for name in end.split(',')])
+        modules = set([name.strip() for name in end.split(',')
+                       if name.strip()])
 
         if 'QtGui' in modules and not self.modified['QtGui']:
             modules.remove('QtGui')
