@@ -1821,7 +1821,9 @@ class PyQt4ToPyQt5(object):
                        .replace(' '+old_mod+'\n', '\n')\
                        .replace(' '+old_mod+'\\', '\\')\
                        .replace(' '+old_mod+' \\', ' \\')
-        return line
+
+        # Remove empty in between lines
+        return L_SEP.join(l for l in line.split(L_SEP) if l.strip()) + L_SEP
 
     def change_import_lines(self, lines):
         """Refactor the import's lines.
