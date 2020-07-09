@@ -2739,7 +2739,7 @@ class Main(object):
         cmd = ['diff', '-u', orig, dest]
         with open(diffname, 'a') as outf:
             reply = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-            outf.write(str(reply.communicate()[0]))
+            outf.write(reply.communicate()[0].decode('utf-8'))
 
     def print_(self, msg):
         if self.log:
