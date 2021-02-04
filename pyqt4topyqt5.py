@@ -2476,7 +2476,7 @@ class Main(object):
         parser.add_argument("--nopyqt5", action="store_true",
                         help="Only perform updates that are compatable with PyQt4."
                         "  Default: False")
-        arg = parser.parse_args()
+        arg = parser.parse_args(args)
 
         if arg.path:
             self.path = self.check_path(arg.path)
