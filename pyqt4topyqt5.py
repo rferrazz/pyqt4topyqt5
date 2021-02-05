@@ -167,7 +167,7 @@ class PyQt4ToPyQt5(object):
         for line in lines:
             if self.is_code_line(line) and ('SIGNAL(' in line or 'SLOT(' in line or 'emit(' in line):
                 sig = True
-            if line.lstrip().startswith(('import ', 'from ')) and 'PyQt4' in line:
+            if line.lstrip().startswith(('import ', 'from ')) and 'PySide' in line:
                 qt4 = True
                 if '.Qt' in line:
                     gui = True
@@ -2255,7 +2255,7 @@ class Tools(object):
                 self.last_error = why
                 return None
 
-        return content.split('\n')
+        return content.split(L_SEP)
 
     def get_encoding(self, path):
         lines = []
