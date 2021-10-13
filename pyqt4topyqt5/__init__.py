@@ -29,7 +29,7 @@ else:
     from io import StringIO
     range_ = range
 
-from qtclass import MODULES, CLASSES, DISCARDED, QAPP_STATIC_METHODS, QVARIANT_OBSOLETE_METHODS
+from .qtclass import MODULES, CLASSES, DISCARDED, QAPP_STATIC_METHODS, QVARIANT_OBSOLETE_METHODS
 
 L_SEP = os.linesep
 PYEXT = (os.extsep + "py", os.extsep + "pxi")
@@ -2476,7 +2476,7 @@ class Main(object):
         parser.add_argument("--nopyqt5", action="store_true",
                         help="Only perform updates that are compatable with PyQt4."
                         "  Default: False")
-        arg = parser.parse_args(args)
+        arg = parser.parse_args()
 
         if arg.path:
             self.path = self.check_path(arg.path)
@@ -2744,5 +2744,6 @@ class Main(object):
             with open(self.log, 'a') as outf:
                 outf.write('%s\n' % msg)
 
-if __name__ == '__main__':
+
+def cli():
     main = Main(sys.argv)
