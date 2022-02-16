@@ -2536,11 +2536,13 @@ class Main(object):
 
         # check if file is executable and contains a Python shebang
         if mode & (stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH):
-            with open(path, 'r') as inf:
-                line = inf.readline().strip()
-                if line in PYSHEBANG:
-                    return True
-
+            try:
+                with open(path, 'r') as inf:
+                    line = inf.readline().strip()
+                    if line in PYSHEBANG:
+                        return True
+            except UnicodeDecodeError:
+                return False
         return False
 
     def prepare_changes(self, followlinks=False):
