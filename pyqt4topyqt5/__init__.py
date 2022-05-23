@@ -2749,3 +2749,7 @@ class Main(object):
 
 def cli():
     main = Main(sys.argv)
+
+
+if __name__ == '__main__':
+    cli()
